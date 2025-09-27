@@ -1,6 +1,6 @@
-import { useId, type RefObject } from "react";
+import { useId, type KeyboardEventHandler, type RefObject } from "react";
 
-export function History({ entries, selectedIdx, onChangeSearchTerm, inputRef }: { entries: string[], selectedIdx: number | null, onChangeSearchTerm: (term: string) => void, inputRef: RefObject<HTMLInputElement | null> }) {
+export function History({ entries, selectedIdx, onInputKeyDown: onInputKeyDown, inputRef }: { entries: string[], selectedIdx: number | null, onInputKeyDown: KeyboardEventHandler<HTMLInputElement>, inputRef: RefObject<HTMLInputElement | null> }) {
   const id = useId()
 
   return (
@@ -10,7 +10,7 @@ export function History({ entries, selectedIdx, onChangeSearchTerm, inputRef }: 
           <li className={i === selectedIdx ? "bg-sky-400" : ""} key={`${id}-${i}`}>{v}</li>
         ))}
       </ol>
-      <input id="isme-message" name="isme-message" className="bg-lime-100  border-b-black border p-2" type='search' onChange={(e) => { onChangeSearchTerm(e.currentTarget.value) }} ref={inputRef}></input>
+      <input id="isme-message" name="isme-message" className="bg-lime-100  border-b-black border p-2" type='search' ref={inputRef} onKeyDown={onInputKeyDown} ></input>
     </div>
   )
 }

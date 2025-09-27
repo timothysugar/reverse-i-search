@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEventHandler } from "react";
 import { History } from "./chat-history";
 
 const SHOW_HISTORY_KEY = 'r'
@@ -15,38 +15,30 @@ export function Chat() {
     inputRef.current?.focus()
   }, [])
 
-  useEffect(() => {
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === SHOW_HISTORY_KEY && e.ctrlKey && showHistory === false) {
-        setShowHistory(true)
-        searchHistoryInputRef.current?.focus()
-      }
+  const handleChatKeydown = (e: KeyboardEvent) => {
+    if (e.key === SHOW_HISTORY_KEY && e.ctrlKey && showHistory === false) {
+      setShowHistory(true)
+      searchHistoryInputRef.current?.focus()
     }
+  }
+  useEffect(() => {
 
-    inputRef.current?.addEventListener('keydown', handleKeydown)
+    inputRef.current?.addEventListener('keydown', handleChatKeydown)
 
     return () => {
-      inputRef.current?.removeEventListener('keydown', handleKeydown)
+      inputRef.current?.removeEventListener('keydown', handleChatKeydown)
     }
   }, [])
 
-  useEffect(() => {
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || (e.key === 'c' && e.ctrlKey)) {
-        setShowHistory(false)
-        inputRef.current?.focus()
-      }
-      if (e.key === SHOW_HISTORY_KEY && e.ctrlKey) {
-        cycleSelectedMessage()
-      }
+  const handleHistoryKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if ((e.key === 'c' && e.ctrlKey)) {
+      setShowHistory(false)
+      inputRef.current?.focus()
     }
-
-    formRef.current?.addEventListener('keydown', handleKeydown)
-
-    return () => {
-      formRef.current?.removeEventListener('keydown', handleKeydown)
+    if (e.key === SHOW_HISTORY_KEY && e.ctrlKey) {
+      cycleSelectedMessage()
     }
-  }, [])
+  }
 
   return (
     <div className="flex-col-reverse">
@@ -60,7 +52,7 @@ export function Chat() {
         (e.target as HTMLFormElement).reset()
         inputRef.current?.focus()
       }}>
-        {showHistory && <History entries={messages} selectedIdx={selectedMessageIdx} onChangeSearchTerm={search} inputRef={searchHistoryInputRef} />}
+        {showHistory && <History entries={messages} selectedIdx={selectedMessageIdx} onInputKeyDown={handleHistoryKeyDown} inputRef={searchHistoryInputRef} />}
         <label className="m-5 p-2" htmlFor="chat">Send a message</label>
         <input id="isme-message" name="isme-message" className="bg-lime-100  border-b-black border p-2" type='text' ref={inputRef}></input>
         <button type="submit" className="bg-sky-500 m-5 p-2">Send</button>
@@ -88,7 +80,6 @@ export function useMessageHistory() {
   const initialMessages = getStoredMessages()
   const [messages, setMessages] = useState(initialMessages)
   const [messageIdx, setMessageIdx] = useState<number | null>(null)
-  console.log('rendering', { messageIdx })
 
   const push = (message: string) => {
     const allMsgs = [message, ...messages].slice(0, MAX_HISTORY_SIZE)
@@ -110,12 +101,20 @@ export function useMessageHistory() {
   }
 
   const cycleSelectedMessage = (direction: boolean = true) => {
-    console.log('cycle selected', { messageIdx, messages })
-    if (messageIdx === null && messages.length > 0) setMessageIdx(0)
-    if (messageIdx === null) return;
-    if (messageIdx >= messages.length) setMessageIdx(0)
-    const inc = direction ? 1 : -1
-    setMessageIdx(curr => curr! + inc)
+    setMessageIdx(curr => {
+      if (curr === null && messages.length > 0) {
+        return 0;
+      }
+      if (curr === null) return null;
+      const inc = direction ? 1 : -1
+      const newIdx = curr + inc
+      console.log('cycling', { direction, inc, newIdx, curr })
+      // cycle back round to start of messages
+      if (newIdx >= messages.length) {
+        return 0
+      }
+      return curr + inc
+    })
   }
 
   return {
