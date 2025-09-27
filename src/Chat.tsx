@@ -15,20 +15,12 @@ export function Chat() {
     inputRef.current?.focus()
   }, [])
 
-  const handleChatKeydown = (e: KeyboardEvent) => {
-    if (e.key === SHOW_HISTORY_KEY && e.ctrlKey && showHistory === false) {
+  const handleChatKeydown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (e.key === SHOW_HISTORY_KEY && e.ctrlKey) {
       setShowHistory(true)
       searchHistoryInputRef.current?.focus()
     }
   }
-  useEffect(() => {
-
-    inputRef.current?.addEventListener('keydown', handleChatKeydown)
-
-    return () => {
-      inputRef.current?.removeEventListener('keydown', handleChatKeydown)
-    }
-  }, [])
 
   const handleHistoryKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if ((e.key === 'c' && e.ctrlKey)) {
@@ -54,7 +46,7 @@ export function Chat() {
       }}>
         {showHistory && <History entries={messages} selectedIdx={selectedMessageIdx} onInputKeyDown={handleHistoryKeyDown} inputRef={searchHistoryInputRef} />}
         <label className="m-5 p-2" htmlFor="chat">Send a message</label>
-        <input id="isme-message" name="isme-message" className="bg-lime-100  border-b-black border p-2" type='text' ref={inputRef}></input>
+        <input id="isme-message" name="isme-message" className="bg-lime-100  border-b-black border p-2" type='text' ref={inputRef} onKeyDown={handleChatKeydown} ></input>
         <button type="submit" className="bg-sky-500 m-5 p-2">Send</button>
         <button onClick={clearAll} className="bg-orange-200 m-5 p-2">Clear History</button>
       </form>

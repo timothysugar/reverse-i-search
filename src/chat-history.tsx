@@ -1,7 +1,10 @@
-import { useId, type KeyboardEventHandler, type RefObject } from "react";
+import { useEffect, useId, type KeyboardEventHandler, type RefObject } from "react";
 
 export function History({ entries, selectedIdx, onInputKeyDown: onInputKeyDown, inputRef }: { entries: string[], selectedIdx: number | null, onInputKeyDown: KeyboardEventHandler<HTMLInputElement>, inputRef: RefObject<HTMLInputElement | null> }) {
   const id = useId()
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   return (
     <div>
